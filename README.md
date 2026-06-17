@@ -7,12 +7,12 @@ asignatura Estadística y Probabilidad I del Colegio de Ciencias y Humanidades (
 ## ¿Qué es?
 
 Una variante del Juego del Vidrio donde cada participante enfrenta un puente nuevo de
-5 paneles. A diferencia de la versión con memoria, aquí los cristales se reordenan en
+6 paneles. A diferencia de la versión con memoria, aquí los cristales se reordenan en
 cada intento y nadie hereda información: los intentos son independientes entre sí.
 
 El simulador permite a los estudiantes descubrir que, como los eventos son
 independientes, la probabilidad de cruzar todo el puente se obtiene multiplicando las
-probabilidades de cada panel: (1/2)^5 = 1/32. Así deducen la regla del producto.
+probabilidades de cada panel: (1/2)^6 = 1/64. Así deducen la regla del producto.
 
 ## ¿Cómo se usa?
 
