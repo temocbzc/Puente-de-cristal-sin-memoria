@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Puente sin Memoria · Independencia y regla del producto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Inter:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0d2428;--ink-2:#123135;--bone:#f0ebe0;--bone-dim:#a9b3ad;
+    --rose:#e0567a;--rose-deep:#b13a59;--mint:#7fb29b;--mint-deep:#3f6e5d;
+    --glass:#9fc2cc;--glass-soft:rgba(159,194,204,.16);--line:rgba(240,235,224,.14);--danger:#d8463f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(120% 80% at 50% -10%, #16383d 0%, var(--ink) 55%) fixed;
+    color:var(--bone);font-family:'Inter',system-ui,sans-serif;line-height:1.55;
+    min-height:100vh;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:760px;margin:0 auto;padding:clamp(18px,5vw,40px) clamp(14px,5vw,28px)}
+
+  .eyebrow{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.28em;
+    text-transform:uppercase;color:var(--rose);display:flex;align-items:center;gap:8px;
+    margin-bottom:12px;flex-wrap:wrap}
+  .shapes{letter-spacing:.1em;color:var(--bone-dim)}
+  h1{font-family:'Archivo',sans-serif;font-weight:900;font-size:clamp(30px,9vw,52px);
+    line-height:.96;letter-spacing:-.02em;text-transform:uppercase}
+  h1 .thin{display:block;font-weight:500;font-size:.46em;letter-spacing:.01em;
+    color:var(--bone-dim);text-transform:none;margin-top:10px;max-width:42ch}
+
+  .voices{display:flex;flex-direction:column;gap:12px;margin:26px 0 18px}
+  .voice{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--line);
+    border-radius:14px;padding:14px 16px;background:linear-gradient(180deg,rgba(255,255,255,.025),transparent)}
+  .voice .avatar{flex:0 0 auto;width:52px;height:52px}
+  .voice .body{flex:1;min-width:0}
+  .voice .name{font-family:'Archivo';font-weight:700;font-size:14px;letter-spacing:.02em;
+    display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap}
+  .voice.front .name{color:var(--rose)}
+  .voice.ally .name{color:var(--mint)}
+  .voice .line{font-size:14px;color:var(--bone)}
+  .voice .role{font-family:'Space Mono';font-size:10px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--bone-dim)}
+
+  .counts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 18px}
+  .count{border:1px solid var(--line);border-radius:12px;padding:14px 16px;text-align:center;
+    background:rgba(0,0,0,.16)}
+  .count .k{font-family:'Space Mono';font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--bone-dim);display:block;margin-bottom:6px}
+  .count .v{font-family:'Archivo';font-weight:900;font-size:30px;line-height:1}
+  .count.a .v{color:var(--bone)}
+  .count.b .v{color:var(--mint)}
+
+  .verify{border:1px dashed var(--line);border-radius:12px;padding:16px;margin-bottom:18px;
+    text-align:center;background:rgba(0,0,0,.12)}
+  .verify p{font-size:13px;color:var(--bone-dim);margin-bottom:12px}
+  .verify .reveal-area{display:none}
+  .verify.open .reveal-area{display:block}
+  .verify.open .prompt{display:none}
+  .verify .odds{font-family:'Space Mono';font-weight:700;font-size:clamp(24px,7vw,34px);
+    color:var(--mint);line-height:1}
+
+  .status{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:baseline;
+    font-family:'Space Mono';font-size:12px;color:var(--bone-dim);
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    padding:12px 2px;margin-bottom:14px}
+  .status b{color:var(--bone);font-size:15px}
+  .status .msg{color:var(--bone);font-family:'Inter';font-weight:500;flex-basis:100%;text-align:left}
+  @media(min-width:520px){.status .msg{flex-basis:auto;margin-left:auto;text-align:right}}
+  .status .msg.win{color:var(--mint)}
+  .status .msg.fall{color:var(--rose)}
+
+  .bridge-frame{display:flex;flex-direction:column;align-items:center;gap:0;padding:6px 0 2px}
+  .cap{font-family:'Space Mono';font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--bone-dim);display:flex;align-items:center;gap:8px;padding:6px 0}
+  .cap .dot{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--bone-dim)}
+  .cap.meta .dot{border-color:var(--mint);background:rgba(127,178,155,.25)}
+  .panel{display:flex;align-items:center;gap:10px;width:100%;max-width:360px;position:relative;padding:5px 0}
+  .panel .num{flex:0 0 auto;width:26px;font-family:'Space Mono';font-size:11px;
+    color:var(--bone-dim);text-align:right;letter-spacing:.05em}
+  .panel.frontier .num{color:var(--mint);font-weight:700}
+  .tiles{display:flex;gap:10px;flex:1}
+  .tile{flex:1;height:54px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer;
+    background:var(--glass-soft);display:flex;align-items:center;justify-content:center;
+    font-family:'Space Mono';font-size:18px;color:var(--glass);
+    transition:transform .12s ease,background .2s ease,border-color .2s ease;min-height:48px}
+  .panel:not(.frontier) .tile{cursor:default}
+  .tile:active{transform:scale(.97)}
+  .tile:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+  .tile.safe{background:rgba(127,178,155,.22);border-color:var(--mint);color:var(--mint)}
+  .tile.broken{background:rgba(216,70,63,.14);border-color:var(--danger);color:var(--danger);opacity:.6}
+  .tile.broken::after{content:'\2715';font-size:20px}
+  .pawn{flex:0 0 auto;width:22px;height:22px}
+  .pawn svg{display:block}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 6px;justify-content:center}
+  button.act{font-family:'Archivo';font-weight:700;font-size:13px;letter-spacing:.04em;
+    text-transform:uppercase;border:1.5px solid var(--bone);color:var(--bone);background:transparent;
+    padding:12px 18px;border-radius:10px;cursor:pointer;min-height:46px;
+    transition:background .18s,color .18s,transform .12s}
+  button.act:active{transform:translateY(1px)}
+  button.act:hover{background:var(--bone);color:var(--ink)}
+  button.act:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+  button.act.ghost{border-color:var(--line);color:var(--bone-dim)}
+  button.act.ghost:hover{background:var(--ink-2);color:var(--bone);border-color:var(--bone-dim)}
+  button.act.mint{border-color:var(--mint);color:var(--mint)}
+  button.act.mint:hover{background:var(--mint);color:var(--ink)}
+  .hint{font-family:'Space Mono';font-size:11px;color:var(--bone-dim);letter-spacing:.04em;
+    flex-basis:100%;text-align:center}
+  @media(hover:none){.hint.kb{display:none}}
+
+  .lock{margin-top:40px;border-top:1px solid var(--line);padding-top:30px}
+  .lock-box{border:1px dashed var(--rose);border-radius:14px;padding:26px 20px;text-align:center;
+    background:rgba(177,58,89,.08)}
+  .lock-box .ic{font-size:30px;color:var(--rose);margin-bottom:8px}
+  .lock-box h3{font-family:'Archivo';font-weight:900;font-size:20px;text-transform:uppercase;
+    letter-spacing:-.01em;margin-bottom:8px}
+  .lock-box p{font-size:14px;color:var(--bone-dim);max-width:46ch;margin:0 auto 16px}
+  .lock-form{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .lock-form input{font-family:'Space Mono';font-size:18px;letter-spacing:.3em;text-align:center;
+    width:140px;padding:11px 12px;border-radius:10px;border:1.5px solid var(--line);
+    background:rgba(0,0,0,.25);color:var(--bone);min-height:46px}
+  .lock-form input:focus-visible{outline:2px solid var(--rose);outline-offset:2px;border-color:var(--rose)}
+  .lock-msg{font-family:'Space Mono';font-size:12px;margin-top:12px;min-height:16px;letter-spacing:.04em}
+  .lock-msg.err{color:var(--rose)}
+  .lock-msg.ok{color:var(--mint)}
+  .explain.locked{display:none}
+
+  .explain{margin-top:40px;border-top:1px solid var(--line);padding-top:30px;
+    display:grid;grid-template-columns:1fr 1fr;gap:22px 32px}
+  @media(max-width:640px){.explain{grid-template-columns:1fr}}
+  .explain h2{grid-column:1/-1;font-family:'Archivo';font-weight:900;font-size:22px;
+    text-transform:uppercase;letter-spacing:-.01em}
+  .explain h3{font-family:'Archivo';font-weight:700;font-size:15px;margin-bottom:7px;color:var(--mint)}
+  .explain h3.bad{color:var(--rose)}
+  .explain p{color:var(--bone-dim);font-size:14px;margin-bottom:9px}
+  .explain p b{color:var(--bone);font-weight:600}
+  .formula{font-family:'Space Mono';font-size:13px;color:var(--bone);background:rgba(0,0,0,.25);
+    border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin:6px 0 11px;display:inline-block}
+  footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--line);
+    font-family:'Space Mono';font-size:10px;letter-spacing:.1em;color:var(--bone-dim);
+    text-transform:uppercase;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Unidad 3 · Independencia y regla del producto <span class="shapes">○ △ □</span></div>
+    <h1>El Puente sin Memoria
+      <span class="thin">El mismo puente, pero ahora cada intento empieza de cero: seis paneles, los cristales se reordenan y nadie hereda nada.</span>
+    </h1>
+  </header>
+
+  <section class="voices" aria-label="Personajes">
+    <div class="voice front">
+      <div class="avatar" aria-hidden="true">
+        <svg viewBox="0 0 52 52" width="52" height="52">
+          <circle cx="26" cy="26" r="24" fill="#b13a59" fill-opacity="0.12"/>
+          <circle cx="26" cy="26" r="24" fill="none" stroke="#e0567a" stroke-width="2"/>
+          <line x1="26" y1="6" x2="26" y2="46" stroke="#e0567a" stroke-width="1.5" stroke-opacity=".5"/>
+          <circle cx="18" cy="24" r="4.5" fill="none" stroke="#e0567a" stroke-width="2"/>
+          <path d="M30 21 L38 24 L30 27 Z" fill="none" stroke="#e0567a" stroke-width="2" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="body">
+        <div class="name">El Front Man <span class="role">· antagonista</span></div>
+        <div class="line">"Aquí cada intento es un puente nuevo: los cristales se reordenan y nadie hereda nada. Cada panel es un volado limpio de 1 entre 2, e independiente de los demás. Y como son independientes, su probabilidad de cruzar el puente COMPLETO sigue siendo 1 entre 2. La independencia mantiene cada panel en su mitad. Crucen con confianza."</div>
+      </div>
+    </div>
+    <div class="voice ally">
+      <div class="avatar" aria-hidden="true">
+        <svg viewBox="0 0 52 52" width="52" height="52">
+          <circle cx="26" cy="26" r="24" fill="#3f6e5d" fill-opacity="0.12"/>
+          <circle cx="26" cy="26" r="24" fill="none" stroke="#7fb29b" stroke-width="2"/>
+          <path d="M26 14 L38 36 L14 36 Z" fill="none" stroke="#7fb29b" stroke-width="2.2" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="body">
+        <div class="name">El Aliado <span class="role">· te guía</span></div>
+        <div class="line">No te doy la respuesta. Si cada panel es 1 de 2 y todos son independientes, ¿qué tienes que hacer con esas seis probabilidades para saber la de cruzar el puente entero? Calcúlalo y compáralo.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="counts" aria-label="Datos observables">
+    <div class="count a">
+      <span class="k">Paneles en el puente</span>
+      <span class="v">6</span>
+    </div>
+    <div class="count b">
+      <span class="k">Cada panel</span>
+      <span class="v">1 de 2</span>
+    </div>
+  </section>
+
+  <section class="verify" id="verify">
+    <div class="prompt">
+      <p>Calcula en tu hoja la probabilidad de cruzar los 6 paneles en un mismo intento. Cuando ya tengas tu respuesta, compárala.</p>
+      <button class="act mint" id="revealBtn">Comparar mi respuesta</button>
+    </div>
+    <div class="reveal-area" role="status">
+      <div class="odds">1 entre 64</div>
+      <button class="act ghost" id="hideBtn" style="margin-top:14px">Ocultar de nuevo</button>
+    </div>
+  </section>
+
+  <div class="status">
+    <span>Participante <b id="pNum">1</b></span>
+    <span>Panel actual <b id="curPanel">1</b> / 6</span>
+    <span class="msg" id="msg" role="status">Toca un cristal del panel iluminado.</span>
+  </div>
+
+  <div class="bridge-frame" id="bridge"></div>
+
+  <div class="controls">
+    <button class="act" id="newBridge">Reiniciar todo</button>
+    <span class="hint kb">En computadora: flechas ← → para elegir cristal</span>
+  </div>
+
+  <!-- candado de la explicación -->
+  <section class="lock" id="lock">
+    <div class="lock-box">
+      <div class="ic" aria-hidden="true">🔒</div>
+      <h3>Respuesta bloqueada</h3>
+      <p>¿Por qué cruzar el puente no es 1 entre 2? Resuelve el reto con el Front Man para conseguir la clave y desbloquear la explicación.</p>
+      <div class="lock-form">
+        <input id="codeInput" type="text" inputmode="numeric" maxlength="6"
+          placeholder="••••" aria-label="Clave de desbloqueo" autocomplete="off">
+        <button class="act mint" id="codeBtn">Desbloquear</button>
+      </div>
+      <div class="lock-msg" id="lockMsg" role="status"></div>
+    </div>
+  </section>
+
+  <section class="explain locked" id="explain">
+    <h2>¿Por qué no es 1 entre 2?</h2>
+    <div>
+      <h3>Aquí sí hay independencia</h3>
+      <p>Como el puente se reinicia en cada intento, lo que pasó antes <b>no cambia nada</b>: cada panel vuelve a ser 1 de 2. Saber B (el intento anterior) no altera A (el siguiente):</p>
+      <div class="formula">P(A | B) = P(A)</div>
+      <p>Eso es, por definición, que los eventos son <b>independientes</b>.</p>
+    </div>
+    <div>
+      <h3>La regla del producto</h3>
+      <p>Cuando dos eventos son independientes, la probabilidad de que ocurran <b>los dos</b> se obtiene multiplicando:</p>
+      <div class="formula">P(A ∩ B) = P(A) × P(B)</div>
+      <p>La independencia no mantiene la probabilidad fija: es justo lo que te <b>permite multiplicar</b>.</p>
+    </div>
+    <div>
+      <h3>Cruzar es multiplicar 6 veces</h3>
+      <p>Cruzar el puente es acertar el panel 1, y el 2, y el 3, y el 4, y el 5, y el 6, todos independientes:</p>
+      <div class="formula">(1/2) × (1/2) × (1/2) × (1/2) × (1/2) × (1/2) = (1/2)⁶ = 1/64</div>
+      <p>Cada "y" multiplica por 1/2, así que la probabilidad <b>baja</b>: 1 entre 64, no 1 entre 2.</p>
+    </div>
+    <div>
+      <h3 class="bad">El error del Front Man</h3>
+      <p>Tenía razón en algo: cada panel sí es 1/2 e independiente. Su trampa fue concluir que <b>el total también es 1/2</b>.</p>
+      <p>Multiplicar seis mitades hace el resultado pequeño, no constante. Cuidado además con otra confusión: <b>independiente no es lo mismo que mutuamente excluyente</b>. Independientes se multiplican; excluyentes no pueden ocurrir juntos.</p>
+    </div>
+  </section>
+
+  <footer>
+    <span>CCH · Estadística y Probabilidad I</span>
+    <span>Independencia · regla del producto</span>
+  </footer>
+</div>
+
+<script>
+const N = 6;
+let panels, pos, participant, locked, busy;
+
+const $ = id => document.getElementById(id);
+const bridgeEl = $('bridge');
+
+const pawnSVG = '<svg viewBox="0 0 22 22" width="22" height="22" aria-hidden="true">'+
+  '<path d="M11 3 L19 18 L3 18 Z" fill="#7fb29b" fill-opacity="0.85" stroke="#7fb29b" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+
+function freshBridge(){
+  // puente nuevo: cristales reordenados al azar, sin memoria del intento anterior
+  panels = Array.from({length:N}, () => ({
+    safe: Math.random() < .5 ? 'L':'R', revealed:false, broken:null
+  }));
+  pos = 0;
+}
+
+function newGame(){
+  participant = 1; locked = false; busy = false;
+  freshBridge();
+  setMsg('Toca un cristal del panel iluminado.','');
+  render();
+}
+
+function setMsg(t, cls){ const m=$('msg'); m.textContent=t; m.className='msg'+(cls?(' '+cls):''); }
+
+function render(){
+  bridgeEl.innerHTML='';
+  const meta=document.createElement('div'); meta.className='cap meta';
+  meta.innerHTML='<span class="dot"></span>META'; bridgeEl.appendChild(meta);
+
+  for(let i=N-1;i>=0;i--){
+    const p=panels[i];
+    const wrap=document.createElement('div');
+    wrap.className='panel'+(i===pos && !locked && !busy ? ' frontier':'');
+    const num=document.createElement('div'); num.className='num';
+    num.textContent=String(i+1).padStart(2,'0'); wrap.appendChild(num);
+
+    const tiles=document.createElement('div'); tiles.className='tiles';
+    ['L','R'].forEach(side=>{
+      const t=document.createElement('button'); t.className='tile';
+      t.setAttribute('aria-label','Panel '+(i+1)+', cristal '+(side==='L'?'izquierdo':'derecho'));
+      if(p.revealed){
+        if(p.safe===side){ t.classList.add('safe'); t.textContent='✓'; }
+        if(p.broken===side){ t.classList.add('broken'); }
+      } else {
+        t.textContent='?';
+        if(i===pos && !locked && !busy){ t.addEventListener('click',()=>choose(side)); }
+        else { t.disabled=true; }
+      }
+      tiles.appendChild(t);
+    });
+    wrap.appendChild(tiles);
+
+    const pawn=document.createElement('div'); pawn.className='pawn';
+    if(i===pos && !locked && !busy) pawn.innerHTML=pawnSVG;
+    wrap.appendChild(pawn);
+    bridgeEl.appendChild(wrap);
+  }
+
+  const start=document.createElement('div'); start.className='cap';
+  start.innerHTML='<span class="dot"></span>SALIDA'; bridgeEl.appendChild(start);
+
+  $('pNum').textContent=participant;
+  $('curPanel').textContent=Math.min(pos+1,N);
+}
+
+function choose(side){
+  if(locked||busy) return;
+  const p=panels[pos];
+  if(p.safe===side){
+    p.revealed=true; pos++;
+    if(pos>=N){ locked=true; setMsg('¡Participante '+participant+' cruzó los 6 paneles!','win'); render(); return; }
+    setMsg('Cristal firme. Vas en el panel '+(pos+1)+'.','');
+    render();
+  } else {
+    // se rompe: el intento termina y el puente se reinicia con cristales nuevos
+    p.revealed=true; p.broken=side; busy=true;
+    setMsg('El cristal se rompió en el panel '+(pos+1)+'. El puente se reinicia.','fall');
+    render();
+    setTimeout(()=>{
+      participant++; busy=false; freshBridge();
+      setMsg('Puente nuevo: cristales reordenados. El intento anterior no da ninguna pista.','');
+      render();
+    }, 1100);
+  }
+}
+
+function openVerify(){ $('verify').classList.add('open'); }
+function closeVerify(){ $('verify').classList.remove('open'); }
+
+const UNLOCK_CODE='3125';
+function tryUnlock(){
+  const val=$('codeInput').value.trim(); const msg=$('lockMsg');
+  if(val===UNLOCK_CODE){
+    msg.textContent='Clave correcta. Explicación desbloqueada.'; msg.className='lock-msg ok';
+    setTimeout(()=>{ $('lock').style.display='none'; $('explain').classList.remove('locked');
+      $('explain').scrollIntoView({behavior:'smooth',block:'start'}); },500);
+  } else {
+    msg.textContent='Clave incorrecta. Vuelve a intentarlo con el Front Man.'; msg.className='lock-msg err';
+  }
+}
+
+$('newBridge').addEventListener('click', newGame);
+$('revealBtn').addEventListener('click', openVerify);
+$('hideBtn').addEventListener('click', closeVerify);
+$('codeBtn').addEventListener('click', tryUnlock);
+$('codeInput').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); tryUnlock(); } });
+document.addEventListener('keydown', e=>{
+  if(locked||busy) return;
+  if(e.key==='ArrowLeft'){ e.preventDefault(); choose('L'); }
+  if(e.key==='ArrowRight'){ e.preventDefault(); choose('R'); }
+});
+
+newGame();
+</script>
+</body>
+</html>
